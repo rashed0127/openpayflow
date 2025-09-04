@@ -1,0 +1,167 @@
+version: '3.8'
+
+services:
+  # Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: openpayflow-postgres
+    environment:
+      POSTGRES_DB: openpayflow
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres-init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis
+  redis:
+    image: redis:7-alpine
+    container_name: openpayflow-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # OpenTelemetry Collector
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.91.0
+    container_name: openpayflow-otel-collector
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    ports:
+      - "4317:4317"   # OTLP gRPC receiver
+      - "4318:4318"   # OTLP HTTP receiver
+      - "8889:8889"   # Prometheus metrics
+    depends_on:
+      - prometheus
+
+  # Prometheus
+  prometheus:
+    image: prom/prometheus:v2.48.1
+    container_name: openpayflow-prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Grafana
+  grafana:
+    image: grafana/grafana-oss:10.2.3
+    container_name: openpayflow-grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    ports:
+      - "3001:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+    depends_on:
+      - prometheus
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # API Service
+  api:
+    build:
+      context: ../../
+      dockerfile: deploy/docker/api.Dockerfile
+    container_name: openpayflow-api
+    environment:
+      - NODE_ENV=development
+      - PORT=4000
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/openpayflow
+      - REDIS_URL=redis://redis:6379
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+      - ENABLE_MOCK=true
+      - ENABLE_STRIPE=false
+      - ENABLE_RAZORPAY=false
+      - ENABLE_GRAPHQL=true
+    ports:
+      - "4000:4000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ../../apps/api/src:/app/apps/api/src
+      - ../../packages:/app/packages
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4000/v1/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Worker Service
+  worker:
+    build:
+      context: ../../
+      dockerfile: deploy/docker/worker.Dockerfile
+    container_name: openpayflow-worker
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/openpayflow
+      - REDIS_URL=redis://redis:6379
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ../../apps/worker/src:/app/apps/worker/src
+      - ../../packages:/app/packages
+
+  # Dashboard Service
+  dashboard:
+    build:
+      context: ../../
+      dockerfile: deploy/docker/dashboard.Dockerfile
+    container_name: openpayflow-dashboard
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_API_URL=http://localhost:4000
+      - NEXT_PUBLIC_MERCHANT_API_KEY=demo_key_1e61a79fab692a92c99c91e4060c94cb
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+    volumes:
+      - ../../apps/dashboard:/app/apps/dashboard
+      - ../../packages:/app/packages
+
+volumes:
+  postgres_data:
+  redis_data:
+  prometheus_data:
+  grafana_data:

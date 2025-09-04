@@ -1,0 +1,196 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Merchant {
+  id         String   @id @default(cuid())
+  name       String
+  apiKeyHash String   @unique @map("api_key_hash")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  payments         Payment[]
+  webhookEndpoints WebhookEndpoint[]
+
+  @@map("merchants")
+}
+
+model Payment {
+  id                 String        @id @default(cuid())
+  merchantId         String        @map("merchant_id")
+  amount             Int
+  currency           String        @db.VarChar(3)
+  status             PaymentStatus @default(PENDING)
+  gateway            GatewayType
+  providerPaymentId  String?       @map("provider_payment_id")
+  idempotencyKey     String        @map("idempotency_key")
+  metadata           Json?
+  createdAt          DateTime      @default(now()) @map("created_at")
+  updatedAt          DateTime      @updatedAt @map("updated_at")
+
+  // Relations
+  merchant        Merchant          @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  attempts        PaymentAttempt[]
+  refunds         Refund[]
+  outboxEntries   Outbox[]
+
+  @@unique([merchantId, idempotencyKey])
+  @@index([merchantId, status])
+  @@index([gateway, status])
+  @@index([createdAt])
+  @@map("payments")
+}
+
+model PaymentAttempt {
+  id               String               @id @default(cuid())
+  paymentId        String               @map("payment_id")
+  attemptNo        Int                  @map("attempt_no")
+  status           PaymentAttemptStatus @default(PENDING)
+  errorCode        String?              @map("error_code")
+  errorMessage     String?              @map("error_message")
+  providerResponse Json?                @map("provider_response")
+  createdAt        DateTime             @default(now()) @map("created_at")
+
+  // Relations
+  payment Payment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+
+  @@unique([paymentId, attemptNo])
+  @@map("payment_attempts")
+}
+
+model Refund {
+  id                String       @id @default(cuid())
+  paymentId         String       @map("payment_id")
+  amount            Int
+  reason            String?
+  status            RefundStatus @default(PENDING)
+  providerRefundId  String?      @map("provider_refund_id")
+  metadata          Json?
+  createdAt         DateTime     @default(now()) @map("created_at")
+  updatedAt         DateTime     @updatedAt @map("updated_at")
+
+  // Relations
+  payment Payment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+
+  @@index([paymentId])
+  @@index([status])
+  @@map("refunds")
+}
+
+model Event {
+  id        String    @id @default(cuid())
+  type      String
+  payload   Json
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  // Relations
+  webhookDeliveries WebhookDelivery[]
+
+  @@index([type])
+  @@index([createdAt])
+  @@map("events")
+}
+
+model WebhookEndpoint {
+  id         String   @id @default(cuid())
+  merchantId String   @map("merchant_id")
+  url        String
+  secret     String
+  events     String[] // Array of event types to listen for
+  isActive   Boolean  @default(true) @map("is_active")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  merchant    Merchant          @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  deliveries  WebhookDelivery[]
+
+  @@unique([merchantId, url])
+  @@index([merchantId])
+  @@map("webhook_endpoints")
+}
+
+model WebhookDelivery {
+  id           String                @id @default(cuid())
+  endpointId   String                @map("endpoint_id")
+  eventId      String                @map("event_id")
+  status       WebhookDeliveryStatus @default(PENDING)
+  attemptCount Int                   @default(0) @map("attempt_count")
+  lastError    String?               @map("last_error")
+  nextRetryAt  DateTime?             @map("next_retry_at")
+  createdAt    DateTime              @default(now()) @map("created_at")
+  updatedAt    DateTime              @updatedAt @map("updated_at")
+
+  // Relations
+  endpoint WebhookEndpoint @relation(fields: [endpointId], references: [id], onDelete: Cascade)
+  event    Event           @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@index([status, nextRetryAt])
+  @@index([endpointId])
+  @@index([eventId])
+  @@map("webhook_deliveries")
+}
+
+model Outbox {
+  id            String   @id @default(cuid())
+  aggregateType String   @map("aggregate_type")
+  aggregateId   String   @map("aggregate_id")
+  eventType     String   @map("event_type")
+  payload       Json
+  processed     Boolean  @default(false)
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  // Relations
+  payment Payment? @relation(fields: [aggregateId], references: [id], onDelete: Cascade)
+
+  @@index([processed, createdAt])
+  @@index([aggregateType, aggregateId])
+  @@map("outbox")
+}
+
+// Enums
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  REQUIRES_ACTION
+  SUCCEEDED
+  FAILED
+  CANCELLED
+}
+
+enum PaymentAttemptStatus {
+  PENDING
+  PROCESSING
+  SUCCEEDED
+  FAILED
+}
+
+enum RefundStatus {
+  PENDING
+  PROCESSING
+  SUCCEEDED
+  FAILED
+}
+
+enum WebhookDeliveryStatus {
+  PENDING
+  DELIVERED
+  FAILED
+  ABANDONED
+}
+
+enum GatewayType {
+  STRIPE
+  RAZORPAY
+  MOCK
+}
